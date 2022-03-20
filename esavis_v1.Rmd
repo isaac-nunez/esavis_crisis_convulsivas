@@ -1,0 +1,49 @@
+---
+title: "esavis_v1"
+output: html_document
+---
+
+```{r primer chunk, include = F, warning=F}
+
+setwd("C:/Users/isaac/OneDrive/Documentos/Protocolos_de_investigacion/ESAVIS/esavis_crisis_convulsivas")
+
+library(tidyverse); library(Hmisc); library(lubridate); library(haven)
+
+```
+
+
+```{r base esavis, include = F, warning=F}
+
+esavis <- read_sav("esavis.sav") 
+names(esavis) <- tolower(names(esavis))
+
+esavis_v1 <- esavis %>%  
+  mutate(tipo_esavi=ifelse(tipo_esavi==0, "grave", "no grave"),
+         vacuna=case_when(vacuna==1~"astrazeneca",
+                          vacuna==2~"pfizer",
+                          vacuna==3~"sinovac",
+                          vacuna==4~"cansino",
+                          vacuna==5~"sputnik",
+                          vacuna==6~"janssen",
+                          vacuna==7~"moderna"),
+         sexo=ifelse(sexo==2, "mujer", "hombre"),
+         covid_previo=ifelse(sars==1, T, F),
+         ocupacion=case_when(ocupación==0~"se desconoce",
+                             ocupación==1~"personal de salud",
+                             ocupación==2~"militar",
+                             ocupación==3~"maestro",
+                             ocupación==4~"pensionado",
+                             ocupación==5~"hogar",
+                             ocupación==6~"desempleado",
+                             ocupación==7~"sector salud no medico",
+                             ocupación==8~"empleado",
+                             ocupación==9~"estudiante",
+                             ocupación==10~"licenciatura",
+                             ocupación==11~"desempleado"),
+         num_faes=`@#_faes`)
+
+table(esavis_v1$epilepsia_previa)
+
+
+```
+
