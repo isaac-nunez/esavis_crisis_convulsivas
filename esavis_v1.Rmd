@@ -4,7 +4,7 @@ output: html_document
 ---
 
 ```{r primer chunk, include = F, warning=F}
-
+#Dont forget to set your own working directory
 setwd("C:/Users/isaac/OneDrive/Documentos/Protocolos_de_investigacion/ESAVIS/esavis_crisis_convulsivas")
 
 library(tidyverse); library(Hmisc); library(lubridate); library(haven)
@@ -40,9 +40,144 @@ esavis_v1 <- esavis %>%
                              ocupación==9~"estudiante",
                              ocupación==10~"licenciatura",
                              ocupación==11~"desempleado"),
-         num_faes=`@#_faes`)
+         num_faes=`@#_faes`,
+         edad=as.numeric(edad),
+         sexo_m=ifelse(sexo=="mujer", T, F))
 
-table(esavis_v1$epilepsia_previa)
+
+```
+
+
+```{r table 1, include = F, warning=F}
+#FUNCIONES para la tabla
+categorico <- function(variable, otro=NA){
+  if(is.na(otro)){
+  c(str_c(sum(filter(esavis_v1, epilepsia_previa==0)[,variable]), " (", 
+                                 round(sum(filter(esavis_v1, epilepsia_previa==0)[,variable])/
+                                         nrow(filter(esavis_v1, epilepsia_previa==0)), 3)*100, "%)"),
+                          #  
+                           str_c(sum(filter(esavis_v1, epilepsia_previa==1)[,variable]), " (", 
+                                 round(sum(filter(esavis_v1, epilepsia_previa==1)[,variable])/
+                                         nrow(filter(esavis_v1, epilepsia_previa==1)), 3)*100, "%)"),
+                           #
+                           str_c(sum(esavis_v1[,variable]), " (", 
+                                 round(sum(esavis_v1[,variable])/
+                                         nrow(esavis_v1), 3)*100, "%)"))
+  }else{
+    c(str_c(sum(filter(esavis_v1, epilepsia_previa==0)[,variable]==otro), " (", 
+                                 round(sum(filter(esavis_v1, epilepsia_previa==0)[,variable]==otro)/
+                                         nrow(filter(esavis_v1, epilepsia_previa==0)), 3)*100, "%)"),
+                          #  
+                           str_c(sum(filter(esavis_v1, epilepsia_previa==1)[,variable]==otro), " (", 
+                                 round(sum(filter(esavis_v1, epilepsia_previa==1)[,variable]==otro)/
+                                         nrow(filter(esavis_v1, epilepsia_previa==1)), 3)*100, "%)"),
+                           #
+                           str_c(sum(esavis_v1[,variable]==otro), " (", 
+                                 round(sum(esavis_v1[,variable]==otro)/
+                                         nrow(esavis_v1), 3)*100, "%)"))
+    
+  }
+  
+}
+
+
+#CONTEOS
+conteo <- c(str_c(nrow(filter(esavis_v1, epilepsia_previa==0)), " (", (round(nrow(filter(esavis_v1, epilepsia_previa==0))/nrow(esavis_v1), 1))*100, "%)"), 
+            str_c(nrow(filter(esavis_v1, epilepsia_previa==1)), " (", (round(nrow(filter(esavis_v1, epilepsia_previa==1))/nrow(esavis_v1), 1))*100, "%)"),
+            str_c(nrow(esavis_v1), " (", (round(nrow(esavis_v1)/nrow(esavis_v1), 1))*100, "%)"))
+
+
+#EDAD
+edad <- c(str_c(median(filter(esavis_v1, epilepsia_previa==0)$edad), " (", fivenum(filter(esavis_v1, epilepsia_previa==0)$edad)[2],
+                            "-", fivenum(filter(esavis_v1, epilepsia_previa==0)$edad)[4], ")"),
+                      
+                      str_c(median(filter(esavis_v1, epilepsia_previa==1)$edad), " (", fivenum(filter(esavis_v1, epilepsia_previa==1)$edad)[2],
+                            "-", fivenum(filter(esavis_v1, epilepsia_previa==1)$edad)[4], ")"),
+                      
+                      str_c(median(esavis_v1$edad), " (", fivenum(esavis_v1$edad)[2],
+                            "-", fivenum(esavis_v1$edad)[4], ")"))
+
+#DÍAS INTERNADO
+dias_internado <- c(str_c(median(filter(esavis_v1, epilepsia_previa==0)$diasinternador, na.rm = T), " (", fivenum(filter(esavis_v1, epilepsia_previa==0)$diasinternador, na.rm = T)[2],
+                            "-", fivenum(filter(esavis_v1, epilepsia_previa==0)$diasinternador, na.rm = T)[4], ")"),
+                      
+                      str_c(median(filter(esavis_v1, epilepsia_previa==1)$diasinternador, na.rm = T), " (", fivenum(filter(esavis_v1, epilepsia_previa==1)$diasinternador, na.rm = T)[2],
+                            "-", fivenum(filter(esavis_v1, epilepsia_previa==1)$diasinternador, na.rm = T)[4], ")"),
+                      
+                      str_c(median(esavis_v1$diasinternador, na.rm = T), " (", fivenum(esavis_v1$diasinternador, na.rm = T)[2],
+                            "-", fivenum(esavis_v1$diasinternador, na.rm = T)[4], ")"))
+
+#NUMBER OF SEIZURES
+num_crisis <- c(str_c(median(filter(esavis_v1, epilepsia_previa==0)$num_de_crisis, na.rm = T), " (", fivenum(filter(esavis_v1, epilepsia_previa==0)$num_de_crisis, na.rm = T)[2],
+                            "-", fivenum(filter(esavis_v1, epilepsia_previa==0)$num_de_crisis, na.rm = T)[4], ")"),
+                      
+                      str_c(median(filter(esavis_v1, epilepsia_previa==1)$num_de_crisis, na.rm = T), " (", fivenum(filter(esavis_v1, epilepsia_previa==1)$num_de_crisis, na.rm = T)[2],
+                            "-", fivenum(filter(esavis_v1, epilepsia_previa==1)$num_de_crisis, na.rm = T)[4], ")"),
+                      
+                      str_c(median(esavis_v1$num_de_crisis, na.rm = T), " (", fivenum(esavis_v1$num_de_crisis, na.rm = T)[2],
+                            "-", fivenum(esavis_v1$num_de_crisis, na.rm = T)[4], ")"))
+
+
+
+
+
+
+table_1 <- data.frame(tipo_paciente=c("sin epilepsia previa", "epilepsia previa", "todos"),
+                      conteo=conteo,
+                      edad=edad,
+                      sexo=categorico("sexo_m"),
+                      vacuna=rep("-", times= 3),
+                      astra=categorico("vacuna", "astrazeneca"),
+                      cansino=categorico("vacuna", "cansino"),
+                      moderna=categorico("vacuna", "moderna"),
+                      pfizer=categorico("vacuna", "pfizer"),
+                      sinovac=categorico("vacuna", "sinovac"),
+                      sputnik=categorico("vacuna", "sputnik"),
+                      covid_previo=categorico("covid_previo"),
+                      tipo_crisis=rep("-", times=3),
+                      generalizadas=categorico("crisis_convulsivas"),
+                      no_generalizadas=categorico("crisis_convulsivas", 0),
+                      NUM_CRISIS=num_crisis,
+                      severidad_aefi=rep("-", times=3),
+                      severidad_aefi_nograve=categorico("tipo_esavi", "no grave"),
+                      severidad_aefi_grave=categorico("tipo_esavi", "grave"),
+                      status=categorico("estatusepiléptico"),
+                      stroke=categorico("evc"),
+                      neuroinfeccion=categorico("neuroinfeccion"),
+                      dias_hospitalizacion=dias_internado,
+                      defuncion=categorico("defuncion"))
+
+
+```
+
+
+```{r incidencia de esavis, include = F, warning = F}
+
+esavis_incidencia <- esavis_v1 %>% 
+  group_by(vacuna) %>% 
+  count() %>% 
+  mutate(dosis_totales=case_when(vacuna=="astrazeneca"~38516372,
+                                 vacuna=="cansino"~2979697,
+                                 vacuna=="moderna"~2318057,
+                                 vacuna=="pfizer"~16646623,
+                                 vacuna=="sinovac"~14532954,
+                                 vacuna=="sputnik"~5812864),
+         eventos_por_millon=round((n/dosis_totales)*1000000, 2)) %>% 
+  arrange(desc(eventos_por_millon)) 
+
+esavis_incidencia_sin_causa <- filter(esavis_v1, evc==0&neuroinfeccion==0&primera_crisis==1) %>% 
+  group_by(vacuna) %>% 
+  count() %>% 
+  mutate(dosis_totales=case_when(vacuna=="astrazeneca"~38516372,
+                                 vacuna=="cansino"~2979697,
+                                 vacuna=="moderna"~2318057,
+                                 vacuna=="pfizer"~16646623,
+                                 vacuna=="sinovac"~14532954,
+                                 vacuna=="sputnik"~5812864),
+         eventos_por_millon=round((n/dosis_totales)*1000000, 2)) %>% 
+  arrange(desc(eventos_por_millon)) 
+
+
 
 
 ```
