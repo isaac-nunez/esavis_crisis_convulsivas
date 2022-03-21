@@ -152,7 +152,6 @@ table_1 <- data.frame(tipo_paciente=c("sin epilepsia previa", "epilepsia previa"
 
 
 ```{r incidencia de esavis, include = F, warning = F}
-
 esavis_incidencia <- esavis_v1 %>% 
   group_by(vacuna) %>% 
   count() %>% 
@@ -163,7 +162,9 @@ esavis_incidencia <- esavis_v1 %>%
                                  vacuna=="sinovac"~14532954,
                                  vacuna=="sputnik"~5812864),
          eventos_por_millon=round((n/dosis_totales)*1000000, 2)) %>% 
-  arrange(desc(eventos_por_millon)) 
+  arrange(desc(eventos_por_millon))
+
+
 
 esavis_incidencia_sin_causa <- filter(esavis_v1, evc==0&neuroinfeccion==0&primera_crisis==1) %>% 
   group_by(vacuna) %>% 
@@ -176,6 +177,44 @@ esavis_incidencia_sin_causa <- filter(esavis_v1, evc==0&neuroinfeccion==0&primer
                                  vacuna=="sputnik"~5812864),
          eventos_por_millon=round((n/dosis_totales)*1000000, 2)) %>% 
   arrange(desc(eventos_por_millon)) 
+
+
+```
+
+
+
+```{r intervalos de confianza, include = F, warning=F}
+
+
+ci_vacuna <- function(x, y){
+  if(y=="todos"){
+  round(binconf(filter(esavis_incidencia, vacuna==x)$n, n=filter(esavis_incidencia, vacuna==x)$dosis_totales , alpha=0.05,
+        method="wilson",
+        include.x=FALSE, include.n=FALSE, return.df=FALSE)*1000000, 2)
+  }else{
+    round(binconf(filter(esavis_incidencia_sin_causa, vacuna==x)$n, n=filter(esavis_incidencia_sin_causa, vacuna==x)$dosis_totales , alpha=0.05,
+        method="wilson",
+        include.x=FALSE, include.n=FALSE, return.df=FALSE)*1000000, 2)
+  }
+}
+
+#INTERVALOS DE CONFIANZA PARA TODOS LOS EVENTOS
+
+table_2 <- data.frame(moderna=c(str_c(ci_vacuna("moderna", y="todos")[1], " (", ci_vacuna("moderna", y="todos")[2], "-", ci_vacuna("moderna", y="todos")[3], ")"),
+                                str_c(ci_vacuna("moderna", y="sin_otra_explicacion")[1], " (", ci_vacuna("moderna", y="sin_otra_explicacion")[2], "-", ci_vacuna("moderna", y="sin_otra_explicacion")[3], ")")),
+                      pfizer=c(str_c(ci_vacuna("pfizer", y="todos")[1], " (", ci_vacuna("pfizer", y="todos")[2], "-", ci_vacuna("pfizer", y="todos")[3], ")"),
+                                str_c(ci_vacuna("pfizer", y="sin_otra_explicacion")[1], " (", ci_vacuna("pfizer", y="sin_otra_explicacion")[2], "-", ci_vacuna("pfizer", y="sin_otra_explicacion")[3], ")")),
+                      cansino=c(str_c(ci_vacuna("cansino", y="todos")[1], " (", ci_vacuna("cansino", y="todos")[2], "-", ci_vacuna("cansino", y="todos")[3], ")"), "0"),
+                      sputnik=c(str_c(ci_vacuna("sputnik", y="todos")[1], " (", ci_vacuna("sputnik", y="todos")[2], "-", ci_vacuna("sputnik", y="todos")[3], ")"),
+                                str_c(ci_vacuna("sputnik", y="sin_otra_explicacion")[1], " (", ci_vacuna("sputnik", y="sin_otra_explicacion")[2], "-", ci_vacuna("sputnik", y="sin_otra_explicacion")[3], ")")),
+                      astra=c(str_c(ci_vacuna("astrazeneca", y="todos")[1], " (", ci_vacuna("astrazeneca", y="todos")[2], "-", ci_vacuna("astrazeneca", y="todos")[3], ")"),
+                                str_c(ci_vacuna("astrazeneca", y="sin_otra_explicacion")[1], " (", ci_vacuna("astrazeneca", y="sin_otra_explicacion")[2], "-", ci_vacuna("astrazeneca", y="sin_otra_explicacion")[3], ")")),
+                      sinovac=c(str_c(ci_vacuna("sinovac", y="todos")[1], " (", ci_vacuna("sinovac", y="todos")[2], "-", ci_vacuna("sinovac", y="todos")[3], ")"),
+                                str_c(ci_vacuna("sinovac", y="sin_otra_explicacion")[1], " (", ci_vacuna("sinovac", y="sin_otra_explicacion")[2], "-", ci_vacuna("sinovac", y="sin_otra_explicacion")[3], ")"))
+                      )
+                      
+
+
 
 
 
